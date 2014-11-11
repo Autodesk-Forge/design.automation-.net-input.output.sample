@@ -47,7 +47,7 @@ namespace  workflow_input_output_variations_autocad.io
                 output.Close();
             }
         }
-        static void SubmitWorkitem(string inResource, string inResourceKind, string outResource, string outResourceKind)
+        static void SubmitWorkitem(string inResource, string inResourceKind)
         {
             //create a workitem
             var wi = new AIO.WorkItem()
@@ -94,11 +94,11 @@ namespace  workflow_input_output_variations_autocad.io
 
             //Resource property of the output argument "Result" will have the output url
             var url = wi.Arguments.OutputArguments.First(a => a.Name == "Result").Resource;
-            DownloadToDocs(url, "AIO.pdf");
+            DownloadToDocs(url, inResourceKind+"-AIO.pdf");
 
             //download the status report
             url = wi.StatusDetails.Report;
-            DownloadToDocs(url, "AIO-report.txt");
+            DownloadToDocs(url, inResourceKind+"-AIO-report.txt");
 
         }
         static AIO.Container container = null;
@@ -109,7 +109,7 @@ namespace  workflow_input_output_variations_autocad.io
             container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", GetToken());
 
             //single file without xrefs
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", "Simple", null, "Simple");
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", "Simple");
 
             //file with xrefs using inline json syntax
             dynamic files = new ExpandoObject();
@@ -123,10 +123,11 @@ namespace  workflow_input_output_variations_autocad.io
             files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
             files.RelatedFiles[1].LocalFileName = "Wall Base.dwg";
             var json = JsonConvert.SerializeObject(files);
-            SubmitWorkitem(json,"RemoteFileResource", null, "Simple");
+            SubmitWorkitem(json,"RemoteFileResource");
 
-            //etransmit pacakge
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", "EtransmitPackage", null, "Simple");
+            //etransmit package
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", "EtransmitPackage");
+
         }
     }
 }

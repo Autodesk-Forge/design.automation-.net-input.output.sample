@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "workflow-input-output-variations-autocad.io", "workflow-input-output-variations-autocad.io.csproj", "{A2FBD316-4043-47F8-8768-621C0CDF9A84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "workflow-input-variations-autocad.io", "workflow-input-variations-autocad.io.csproj", "{A2FBD316-4043-47F8-8768-621C0CDF9A84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
