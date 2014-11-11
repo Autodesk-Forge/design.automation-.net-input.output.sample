@@ -79,7 +79,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="LICENSE" />
     <None Include="packages.config" />
+    <None Include="README.md" />
     <None Include="Service References\AIO\service.edmx" />
   </ItemGroup>
   <ItemGroup>
