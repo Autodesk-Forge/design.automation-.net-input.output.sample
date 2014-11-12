@@ -106,7 +106,8 @@ namespace  workflow_input_variations_autocad.io
         {
             //instruct client side library to insert token as Authorization value into each request
             container = new AIO.Container(new Uri("https://developer.api.autodesk.com/autocad.io/v1/"));
-            container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", GetToken());
+            var token = GetToken();
+            container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", token);
 
             //single file without xrefs
             SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", "Simple");
