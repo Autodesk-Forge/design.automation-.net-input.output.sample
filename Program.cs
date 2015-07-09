@@ -16,11 +16,44 @@ namespace  workflow_input_variations_autocad.io
     class Credentials
     {
         //get your ConsumerKey/ConsumerSecret at http://developer.autodesk.com
-        public static string ConsumerKey = "JKYxIOTemOeGErQZg6GNwAuvZ799HI2h";
-        public static string ConsumerSecret = "RSl0W7yR1ONWD05v";
+        public static string ConsumerKey = "";
+        public static string ConsumerSecret = "";
     }
     class Program
     {
+        static Container container = null;
+        static void Main(string[] args)
+        {
+            //instruct client side library to insert token as Authorization value into each request
+            container = new Container(new Uri("https://developer.api.autodesk.com/autocad.io/us-east/v2/"));
+            var token = GetToken();
+            container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", token);
+
+            //single file without xrefs
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", ResourceKind.Simple);
+
+            //file with xrefs using inline json syntax
+            dynamic files = new ExpandoObject();
+            files.Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true";
+            files.LocalFileName = "A-01.dwg";
+            files.RelatedFiles = new ExpandoObject[2];
+            files.RelatedFiles[0] = new ExpandoObject();
+            files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Grid%20Plan.dwg?raw=true";
+            files.RelatedFiles[0].LocalFileName = "Grid Plan.dwg";
+            files.RelatedFiles[1] = new ExpandoObject();
+            files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
+            files.RelatedFiles[1].LocalFileName = "Wall Base.dwg";
+            var json = JsonConvert.SerializeObject(files);
+            SubmitWorkitem(json, ResourceKind.RemoteFileResource);
+
+            //etransmit package
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", ResourceKind.EtransmitPackage);
+
+            //output to Azure using new Headers property
+            SubmitWorkItemWithOutputHeaders();
+
+        }
+
         static string GetToken()
         {
             using (var client = new HttpClient())
@@ -30,7 +63,7 @@ namespace  workflow_input_variations_autocad.io
                 values.Add(new KeyValuePair<string, string>("client_secret", Credentials.ConsumerSecret));
                 values.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
                 var requestContent = new FormUrlEncodedContent(values);
-                var response = client.PostAsync("https://developer-stg.api.autodesk.com/authentication/v1/authenticate", requestContent).Result;
+                var response = client.PostAsync("https://developer.api.autodesk.com/authentication/v1/authenticate", requestContent).Result;
                 var responseContent = response.Content.ReadAsStringAsync().Result;
                 var resValues = JsonConvert.DeserializeObject<Dictionary<string, string>>(responseContent);
                 return resValues["token_type"] + " " + resValues["access_token"];
@@ -80,7 +113,7 @@ namespace  workflow_input_variations_autocad.io
             container.SaveChanges();
 
             pollWorkitem(wi, inResourceKind.ToString());
-            
+
         }
 
         // To upload to Azure blob, you are required to specify a value in header "x-ms-blob-type".
@@ -103,7 +136,7 @@ namespace  workflow_input_variations_autocad.io
                 ResourceKind = ResourceKind.Simple,
                 StorageProvider = StorageProvider.Generic //Generic HTTP download (as opposed to A360)
             });
-            
+
             var outputArgument = new Argument()
             {
                 Name = "Result", //must match the output parameter in activity
@@ -147,39 +180,6 @@ namespace  workflow_input_variations_autocad.io
             //download the status report
             url = wi.StatusDetails.Report;
             DownloadToDocs(url, prefix + "-AIO-report.txt");
-        }
-
-        static Container container = null;
-        static void Main(string[] args)
-        {
-            //instruct client side library to insert token as Authorization value into each request
-            container = new Container(new Uri("https://developer-stg.api.autodesk.com/autocad.io/us-east/v2/"));
-            var token = GetToken();
-            container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", token);
-
-            //single file without xrefs
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", ResourceKind.Simple);
-
-            //file with xrefs using inline json syntax
-            dynamic files = new ExpandoObject();
-            files.Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true";
-            files.LocalFileName = "A-01.dwg";
-            files.RelatedFiles = new ExpandoObject[2];
-            files.RelatedFiles[0] = new ExpandoObject();
-            files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Grid%20Plan.dwg?raw=true";
-            files.RelatedFiles[0].LocalFileName = "Grid Plan.dwg";
-            files.RelatedFiles[1] = new ExpandoObject();
-            files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
-            files.RelatedFiles[1].LocalFileName = "Wall Base.dwg";
-            var json = JsonConvert.SerializeObject(files);
-            SubmitWorkitem(json, ResourceKind.RemoteFileResource);
-
-            //etransmit package
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", ResourceKind.EtransmitPackage);
-
-            //output to Azure using new Headers property
-            SubmitWorkItemWithOutputHeaders();
-
         }
     }
 }
