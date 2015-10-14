@@ -8,6 +8,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
+using AIO.Operations;
+using AIO.ACES.Models;
+
 namespace  workflow_input_variations_autocad.io
 {
     class Credentials
@@ -18,6 +21,39 @@ namespace  workflow_input_variations_autocad.io
     }
     class Program
     {
+        static Container container = null;
+        static void Main(string[] args)
+        {
+            //instruct client side library to insert token as Authorization value into each request
+            container = new Container(new Uri("https://developer.api.autodesk.com/autocad.io/us-east/v2/"));
+            var token = GetToken();
+            container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", token);
+
+            //single file without xrefs
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", ResourceKind.Simple);
+
+            //file with xrefs using inline json syntax
+            dynamic files = new ExpandoObject();
+            files.Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true";
+            files.LocalFileName = "A-01.dwg";
+            files.RelatedFiles = new ExpandoObject[2];
+            files.RelatedFiles[0] = new ExpandoObject();
+            files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Grid%20Plan.dwg?raw=true";
+            files.RelatedFiles[0].LocalFileName = "Grid Plan.dwg";
+            files.RelatedFiles[1] = new ExpandoObject();
+            files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
+            files.RelatedFiles[1].LocalFileName = "Wall Base.dwg";
+            var json = JsonConvert.SerializeObject(files);
+            SubmitWorkitem(json, ResourceKind.RemoteFileResource);
+
+            //etransmit package
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", ResourceKind.EtransmitPackage);
+
+            //output to Azure using new Headers property
+            SubmitWorkItemWithOutputHeaders();
+
+        }
+
         static string GetToken()
         {
             using (var client = new HttpClient())
@@ -47,30 +83,28 @@ namespace  workflow_input_variations_autocad.io
                 output.Close();
             }
         }
-        static void SubmitWorkitem(string inResource, string inResourceKind)
+        static void SubmitWorkitem(string inResource, ResourceKind inResourceKind)
         {
             //create a workitem
-            var wi = new AIO.WorkItem()
+            var wi = new WorkItem()
             {
-                UserId = "", //must be set to empty
                 Id = "", //must be set to empty
-                Arguments = new AIO.Arguments(),
-                Version = 1, //should always be 1
-                ActivityId = new AIO.EntityId() { UserId = "Shared", Id = "PlotToPDF" } //PlotToPDF is a predefined activity
+                Arguments = new Arguments(),
+                ActivityId = "PlotToPDF" //PlotToPDF is a predefined activity
             };
 
-            wi.Arguments.InputArguments.Add(new AIO.Argument()
+            wi.Arguments.InputArguments.Add(new Argument()
             {
                 Name = "HostDwg",// Must match the input parameter in activity
                 Resource = inResource,
                 ResourceKind = inResourceKind,
-                StorageProvider = "Generic" //Generic HTTP download (as opposed to A360)
+                StorageProvider = StorageProvider.Generic //Generic HTTP download (as opposed to A360)
             });
-            wi.Arguments.OutputArguments.Add(new AIO.Argument()
+            wi.Arguments.OutputArguments.Add(new Argument()
             {
                 Name = "Result", //must match the output parameter in activity
-                StorageProvider = "Generic", //Generic HTTP upload (as opposed to A360)
-                HttpVerb = "POST", //use HTTP POST when delivering result
+                StorageProvider = StorageProvider.Generic, //Generic HTTP upload (as opposed to A360)
+                HttpVerb = HttpVerbType.POST, //use HTTP POST when delivering result
                 Resource = null //use storage provided by AutoCAD.IO
             });
 
@@ -78,6 +112,53 @@ namespace  workflow_input_variations_autocad.io
             Console.WriteLine("Submitting workitem...");
             container.SaveChanges();
 
+            pollWorkitem(wi, inResourceKind.ToString());
+
+        }
+
+        // To upload to Azure blob, you are required to specify a value in header "x-ms-blob-type".
+        // We added a new Headers property on Argument so that you can set necessary header values for
+        // both InputArgument and OutputArgument.
+        static void SubmitWorkItemWithOutputHeaders()
+        {
+            //create a workitem
+            var wi = new WorkItem()
+            {
+                Id = "", //must be set to empty
+                Arguments = new Arguments(),
+                ActivityId = "PlotToPDF" //PlotToPDF is a predefined activity
+            };
+
+            wi.Arguments.InputArguments.Add(new Argument()
+            {
+                Name = "HostDwg",// Must match the input parameter in activity
+                Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true",
+                ResourceKind = ResourceKind.Simple,
+                StorageProvider = StorageProvider.Generic //Generic HTTP download (as opposed to A360)
+            });
+
+            var outputArgument = new Argument()
+            {
+                Name = "Result", //must match the output parameter in activity
+                StorageProvider = StorageProvider.Generic, //Generic HTTP upload (as opposed to A360)
+                HttpVerb = HttpVerbType.PUT, //use HTTP POST when delivering result
+                Resource = "http://portalvhdsz7vs58j0h10tp.blob.core.windows.net/test/A-01.pdf?sv=2014-02-14&sr=c&sig=ngiVjMtuQNOWKRZtwosL4va3M7fgg9bt22e6FtH6gEo%3D&st=2015-05-15T07%3A00%3A00Z&se=2018-05-23T07%3A00%3A00Z&sp=rw",
+                Headers = new System.Collections.ObjectModel.ObservableCollection<Header>() 
+                { 
+                    new Header() { Name = "x-ms-blob-type", Value = "BlockBlob" } // This is required for Azure blob.
+                }
+            };
+            wi.Arguments.OutputArguments.Add(outputArgument);
+
+            container.AddToWorkItems(wi);
+            Console.WriteLine("Submitting workitem...");
+            container.SaveChanges();
+
+            pollWorkitem(wi, "TestOutputHeaders");
+        }
+
+        static void pollWorkitem(WorkItem wi, string prefix)
+        {
             //polling loop
             do
             {
@@ -86,49 +167,19 @@ namespace  workflow_input_variations_autocad.io
                 container.LoadProperty(wi, "Status"); //http request is made here
                 Console.WriteLine("WorkItem status: {0}", wi.Status);
             }
-            while (wi.Status == "Pending" || wi.Status == "InProgress");
+            while (wi.Status == ExecutionStatus.Pending || wi.Status == ExecutionStatus.InProgress);
 
             //re-query the service so that we can look at the details provided by the service
-            container.MergeOption = System.Data.Services.Client.MergeOption.OverwriteChanges;
-            wi = container.WorkItems.Where(p => p.UserId == wi.UserId && p.Id == wi.Id).First();
+            container.MergeOption = Microsoft.OData.Client.MergeOption.OverwriteChanges;
+            wi = container.WorkItems.ByKey(wi.Id).GetValue();
 
             //Resource property of the output argument "Result" will have the output url
             var url = wi.Arguments.OutputArguments.First(a => a.Name == "Result").Resource;
-            DownloadToDocs(url, inResourceKind+"-AIO.pdf");
+            DownloadToDocs(url, prefix + "-AIO.pdf");
 
             //download the status report
             url = wi.StatusDetails.Report;
-            DownloadToDocs(url, inResourceKind+"-AIO-report.txt");
-
-        }
-        static AIO.Container container = null;
-        static void Main(string[] args)
-        {
-            //instruct client side library to insert token as Authorization value into each request
-            container = new AIO.Container(new Uri("https://developer.api.autodesk.com/autocad.io/v1/"));
-            var token = GetToken();
-            container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", token);
-
-            //single file without xrefs
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", "Simple");
-
-            //file with xrefs using inline json syntax
-            dynamic files = new ExpandoObject();
-            files.Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true";
-            files.LocalFileName = "A-01.dwg";
-            files.RelatedFiles = new ExpandoObject[2];
-            files.RelatedFiles[0] = new ExpandoObject();
-            files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Grid%20Plan.dwg?raw=true";
-            files.RelatedFiles[0].LocalFileName = "Grid Plan.dwg";
-            files.RelatedFiles[1] = new ExpandoObject();
-            files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
-            files.RelatedFiles[1].LocalFileName = "Wall Base.dwg";
-            var json = JsonConvert.SerializeObject(files);
-            SubmitWorkitem(json,"RemoteFileResource");
-
-            //etransmit package
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", "EtransmitPackage");
-
+            DownloadToDocs(url, prefix + "-AIO-report.txt");
         }
     }
 }
