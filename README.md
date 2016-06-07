@@ -18,8 +18,10 @@ Visual Studio 2012, 2013. 2015 should be also fine, but has not yet been tested.
 * Restore the packages of the project by [NuGet](https://www.nuget.org/). The simplest way is to Projects tab >> Enable NuGet Package Restore. Then right click the project>>"Manage NuGet Packages for Solution" >> "Restore" (top right of dialog)
 * Apply credencials of AutoCAD.IO from https://developer.autodesk.com/. Put your consumer key and secret key at  line 19 and 20 of [program.cs](./Program.cs) 
 *  Run project, you will see a status in the console:
-* if everything works well, a zip file and a report file will be downloaded at **MyDocuments**.
-* if there is any error with the process, check the report file what error is indicated in the process.
+* if everything works well, some result files (pdf, zip) and the report files will be downloaded at MyDocuments.
+* if there is any error with the process, check the report file what error is indicated.
+
+[![](RunDemo.png)] 
 Please refer to [AutoCAD.IO V2 API documentation](https://developer.autodesk.com/api/autocadio/v2/).
 
 ## Questions
