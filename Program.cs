@@ -29,25 +29,35 @@ namespace  workflow_input_variations_autocad.io
             var token = GetToken();
             container.SendingRequest2 += (sender, e) => e.RequestMessage.SetHeader("Authorization", token);
 
+            //probably an issue of redirect download.  use direct download instead at this moment
+
+
             //single file without xrefs
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", ResourceKind.Simple);
+            //SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true", ResourceKind.Simple);
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/raw/master/A-01.dwg", ResourceKind.Simple);
 
             //file with xrefs using inline json syntax
             dynamic files = new ExpandoObject();
-            files.Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true";
+            //files.Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true";
+            files.Resource = " https://github.com/Developer-Autodesk/library-sample-autocad.io/raw/master/A-01.dwg";
+       
             files.LocalFileName = "A-01.dwg";
             files.RelatedFiles = new ExpandoObject[2];
             files.RelatedFiles[0] = new ExpandoObject();
-            files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Grid%20Plan.dwg?raw=true";
+            //files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Grid%20Plan.dwg?raw=true";
+            files.RelatedFiles[0].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/raw/master/Res/Grid%20Plan.dwg";
+
             files.RelatedFiles[0].LocalFileName = "Grid Plan.dwg";
             files.RelatedFiles[1] = new ExpandoObject();
-            files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
+            //files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/Res/Wall%20Base.dwg?raw=true";
+            files.RelatedFiles[1].Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/raw/master/Res/Wall%20Base.dwg";
             files.RelatedFiles[1].LocalFileName = "Wall Base.dwg";
             var json = JsonConvert.SerializeObject(files);
             SubmitWorkitem(json, ResourceKind.RemoteFileResource);
 
             //etransmit package
-            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", ResourceKind.EtransmitPackage);
+            //SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.zip?raw=true", ResourceKind.EtransmitPackage);
+            SubmitWorkitem("https://github.com/Developer-Autodesk/library-sample-autocad.io/raw/master/A-01.zip", ResourceKind.EtransmitPackage);
 
             //output to Azure using new Headers property
             SubmitWorkItemWithOutputHeaders();
@@ -132,7 +142,8 @@ namespace  workflow_input_variations_autocad.io
             wi.Arguments.InputArguments.Add(new Argument()
             {
                 Name = "HostDwg",// Must match the input parameter in activity
-                Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true",
+                //Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/blob/master/A-01.dwg?raw=true",
+                Resource = "https://github.com/Developer-Autodesk/library-sample-autocad.io/raw/master/A-01.dwg",
                 ResourceKind = ResourceKind.Simple,
                 StorageProvider = StorageProvider.Generic //Generic HTTP download (as opposed to A360)
             });
