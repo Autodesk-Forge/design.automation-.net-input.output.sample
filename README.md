@@ -22,7 +22,7 @@ Visual Studio 2012, 2013. 2015 should be also fine, but has not yet been tested.
 * if there is any error with the process, check the report file what error is indicated.
 
 [![](RunDemo.png)] 
-Please refer to [Design Automation API v2 API documentation](https://developer.autodesk.com/api/autocadio/v2/).
+Please refer to [Design Automation API v2 API documentation](https://developer.autodesk.com/en/docs/design-automation/v2/overview/).
 
 ## Questions
 
