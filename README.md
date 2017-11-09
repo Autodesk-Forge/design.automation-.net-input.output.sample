@@ -23,7 +23,7 @@ Visual Studio 2012, 2013. 2015 should be also fine, but has not yet been tested.
 * if everything works well, some result files (pdf, zip) and the report files will be downloaded at **MyDocuments**.
 * if there is any error with the process, check the report file what error is indicated.
 
-[![thumbnail](RunDemo.png)] 
+![thumbnail](RunDemo.png)] 
 Please refer to [Design Automation API v2 API documentation](https://developer.autodesk.com/en/docs/design-automation/v2/overview/).
 
 ## Questions
