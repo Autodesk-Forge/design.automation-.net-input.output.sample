@@ -21,6 +21,10 @@ namespace  workflow_input_variations_autocad.io
     }
     class Program
     {
+        //provide a URL of a presigned place where the result can be uploaded
+        //something like "http://portalvhdsz7vs58j0h10tp.blob.core.windows.net/test/A-01.pdf?sv=2014-02-14&sr=c&sig=ngiVjMtuQNOWKRZtwosL4va3M7fgg9bt22e6FtH6gEo%3D&st=2015-05-15T07%3A00%3A00Z&se=2018-05-23T07%3A00%3A00Z&sp=rw"
+        public static string AzureBlobUrl = "";
+
         static Container container = null;
         static void Main(string[] args)
         {
@@ -154,7 +158,7 @@ namespace  workflow_input_variations_autocad.io
                 Name = "Result", //must match the output parameter in activity
                 StorageProvider = StorageProvider.Generic, //Generic HTTP upload (as opposed to A360)
                 HttpVerb = HttpVerbType.PUT, //use HTTP POST when delivering result
-                Resource = "http://portalvhdsz7vs58j0h10tp.blob.core.windows.net/test/A-01.pdf?sv=2014-02-14&sr=c&sig=ngiVjMtuQNOWKRZtwosL4va3M7fgg9bt22e6FtH6gEo%3D&st=2015-05-15T07%3A00%3A00Z&se=2018-05-23T07%3A00%3A00Z&sp=rw",
+                Resource = AzureBlobUrl,
                 Headers = new System.Collections.ObjectModel.ObservableCollection<Header>() 
                 { 
                     new Header() { Name = "x-ms-blob-type", Value = "BlockBlob" } // This is required for Azure blob.
