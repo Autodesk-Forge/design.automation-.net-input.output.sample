@@ -26,14 +26,14 @@ This C# sample shows various ways to specify input for a work item of Design Aut
 
 ## Running locally  
 
-1. Open project **Client**. Restore the packages of the project by [NuGet](https://www.nuget.org/. The simplest way is
+1. Open the project. Restore the packages of the project by [NuGet](https://www.nuget.org/. The simplest way is
   * VS2012: Projects tab >> Enable NuGet Package Restore. Then right click the project>>"Manage NuGet Packages for Solution" >> "Restore" (top right of dialog)
   * VS2013/VS2015/2017:  right click the project>>"Manage NuGet Packages for Solution" >> "Restore" (top right of dialog)
 2. Put your Forge credentials in [program.cs](./Program.cs) 
 3. Run project **Client**, you will see a status in the console:
-![thumbnail](demofiles/console.png)
+![thumbnail](help/console.png)
 4. if everything works well,  the result files and the report files will be downloaded to **MyDocuments**. The result by **SubmitWorkItemWithOutputHeaders** will be uploaded to your Azure blob storage.
-![thumbnail](demofiles/azure.png) 
+![thumbnail](help/azure.png) 
 6. if there is any error with the process of work item, check the report file what error is indicated. 
 
 ## Known Issues
