@@ -21,8 +21,11 @@ namespace  workflow_input_variations_autocad.io
     }
     class Program
     {
-        //provide a URL of a presigned place where the result can be uploaded
-        //something like "http://portalvhdsz7vs58j0h10tp.blob.core.windows.net/test/A-01.pdf?sv=2014-02-14&sr=c&sig=ngiVjMtuQNOWKRZtwosL4va3M7fgg9bt22e6FtH6gEo%3D&st=2015-05-15T07%3A00%3A00Z&se=2018-05-23T07%3A00%3A00Z&sp=rw"
+        //if you need to test with SubmitWorkItemWithOutputHeaders function,
+        //ensure to provide a URL of a presigned place where the result can be uploaded
+        //something like "https://xiaodongtest.blob.core.windows.net/xiaodongtest/A-01.pdf?sv=2017-04-17&sr=b&sig=yw1wWAAD9XavECD5B6jt8DoUY5cozQQukoGu8WoD0XM%3D&st=2018-09-30T07%3A32%3A49Z&se=2018-10-01T07%3A37%3A49Z&sp=rw"
+        //follow the tutorial of Azure to generate the url.
+        //https://docs.microsoft.com/en-us/azure/storage/blobs/storage-dotnet-shared-access-signature-part-2
         public static string AzureBlobUrl = "";
 
         static Container container = null;
